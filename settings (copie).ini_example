@@ -1,0 +1,6 @@
+[Emby]
+EMBY_APIKEY = aaaabbbbbbbcccccccccccccdddddddd
+EMBY_URLBASE = http://127.0.0.1:8096/emby/
+[Jelly]
+JELLY_APIKEY = eeeeeeeeeeeeeeeffffffffffffffffggggggggg
+JELLY_URLBASE = http://127.0.0.1:8096/jellyfin/
