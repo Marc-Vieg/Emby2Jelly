@@ -65,7 +65,9 @@ then very rapidly, it will get the viewed contend for all users from emby
 the script will work user by user (create them on Jelly if they don't already exist),
 asking Jelly for their viewable content 
 
-**due to security reason** their is no way by using API that could permit this script to get password, hashed pass etc.. of a user, **Each user created will be password-less **
+**due to security reason** their is no way by using API that could permit this script to get password, hashed pass etc.. of a user, 
+
+**Each user created will be password-less**
 
 ```
 Jelly has 0 Users
