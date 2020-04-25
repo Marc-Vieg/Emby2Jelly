@@ -8,6 +8,7 @@ import time
 import ast
 
 
+
 '''
 MigrationData[user['Name']] = []
 MigrationMedia={}
@@ -403,7 +404,7 @@ if __name__ == "__main__":
 		
 	global MigrationData
 	MigrationData = {}
-	selectedUsers = ['TestUser', 'Test User']
+	selectedUsers = []
 	
 	emby(selectedUsers)	
 	jelly()
