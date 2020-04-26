@@ -17,6 +17,7 @@ import urllib.parse
 from configobj import ConfigObj
 import os
 import time
+import sys, getopt
 
 
 
@@ -32,7 +33,7 @@ MigrationMedia['ProviderIds']={}
 						
 						
 						
-LocalCache = {}
+
 
 jellyUserDb = {}
 def getConfig(path, section, option, type):
@@ -146,10 +147,6 @@ def emby(selectedUsers):
 							MigrationMedia['ProviderIds']=itemDto["ProviderIds"]
 							MigrationData[user['Name']].append(MigrationMedia)
 
-
-
-					with open('db.txt', 'w') as outfile:
-						json.dump(LocalCache, outfile)
 				else:
 					print( "\033[91merror : {0}  =  {1}\033[00m".format(response.status_code,response.content.decode('utf-8')))
 				
@@ -403,21 +400,76 @@ def jelly():
 
 
 
-
 if __name__ == "__main__":
 	path = "settings.ini"
 	if not exist(path):
 		createConfig(path)
 		print("Please see the README and complete the config\n thank you")
-		import sys
+
 		sys.exit()
+		
 		
 		
 	global MigrationData
 	MigrationData = {}
 	selectedUsers = []
 	
-	emby(selectedUsers)	
-	jelly()
-	
+	argv = sys.argv[1:]
+	tofile = None
+	fromfile = None
+	MigrationFile = None
+	try:
+		opts, args = getopt.getopt(argv,"",["tofile=","fromfile="])
+	except getopt.GetoptError:
+		print('python3 APImain.py\n\nMigrate from Emby to Jellyfin (or Jellyfin to Jellyfin)\n')
+		print('--tofile [file]     run the script saving viewed statuses to a file instead of sending them to destination server')
+		print('--fromfile [file]       run the script with a file as source server and send viewed statuses to destination server')
+		sys.exit(2)
+	for opt, arg in opts:
+		if opt == '-h':
+			print('python3 APImain.py\n\nMigrate from Emby to Jellyfin (or Jellyfin to Jellyfin)\n')
+			print('--tofile [file]     run the script saving viewed statuses to a file instead of sending them to destination server')
+			print('--fromfile [file]       run the script with a file as source server and send viewed statuses to destination server')
+			sys.exit()
+		elif opt == "--tofile":
+			tofile = arg
+		elif opt == "--fromfile":
+			fromfile = arg
 
+
+	if tofile != None:
+		print ('Migration to file {0}'.format(tofile))
+		try :
+			MigrationFile = open(tofile, 'w')
+		except : 
+			print("cannot open file {0}".format(tofile))
+			sys.exit(1)
+
+	elif fromfile != None:
+		print ('Migration from file {0}'.format(fromfile))
+		try :
+			MigrationFile = open(fromfile, 'r')
+			MigrationData = json.loads(MigrationFile.read())
+			#print(MigrationData)
+		except : 
+			print("cannot open file {0}".format(tofile))
+			sys.exit(1)
+	else:
+		print("no file specified, will run from source server to destination server")
+
+
+	
+	if fromfile is None:
+		emby(selectedUsers)	
+		if tofile is not None:
+			MigrationFile.write(json.dumps(MigrationData))
+			MigrationFile.close()
+			sys.exit(1)
+	
+	if tofile is None:
+		jelly()
+	if MigrationFile is not None:
+		MigrationFile.close()
+	sys.exit(1)
+
+	
