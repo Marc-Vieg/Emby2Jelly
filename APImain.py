@@ -1,3 +1,16 @@
+# #############################################################################
+# Author: CobayeGunther
+# Creation Date: 26/04/2020
+#
+# Description: 	python script to recreate users from emby to jellyfin 
+#				and migrate their watched content 
+#
+# Github Source: https://github.com/CobayeGunther/Emby2Jelly
+# Readme Source: https://github.com/CobayeGunther/Emby2Jelly/blob/master/README.md
+#
+# #############################################################################
+
+
 import json
 import collections
 import requests
