@@ -12,13 +12,11 @@
 
 
 import json
-import collections
 import requests
 import urllib.parse
 from configobj import ConfigObj
 import os
 import time
-import ast
 
 
 
@@ -31,11 +29,8 @@ MigrationMedia['JellyId']=''
 MigrationMedia['Name']=''
 MigrationMedia['ProviderIds']={}
 '''
-						
-						
-						
-LocalCache = {}
-syncCache = {}
+
+
 jellyUserDb = {}
 def getConfig(path, section, option, type):
     config = ConfigObj(path)

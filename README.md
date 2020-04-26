@@ -19,12 +19,10 @@ and Jellyfin server Version : **10.5.4**
 python3
 ```
 json
-collections
 requests
 urllib.parse
 configobj
 time
-concurrent.futures
 ```
 ## Configuration
 simply edit settings.ini with your emby and jelly url and api keys
