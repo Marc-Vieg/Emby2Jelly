@@ -29,7 +29,10 @@ MigrationMedia['JellyId']=''
 MigrationMedia['Name']=''
 MigrationMedia['ProviderIds']={}
 '''
-
+						
+						
+						
+LocalCache = {}
 
 jellyUserDb = {}
 def getConfig(path, section, option, type):
