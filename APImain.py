@@ -170,7 +170,7 @@ def emby(selectedUsers):
 def jelly():
 	reportStr = ''
 	report = {}
-	createdUsers = []
+
 
 	JELLY_APIKEY = getConfig(path, 'Jelly', 'JELLY_APIKEY', 'str')
 	JELLY_URLBASE = getConfig(path, 'Jelly', 'JELLY_URLBASE', 'str')
@@ -195,7 +195,7 @@ def jelly():
 
 		nonlocal JellyUsersIdDict
 		nonlocal report
-		nonlocal createdUsers
+
 		report['users'] = ''
 		JellyUsersIdDict['Name'] = 0
 		embyList = []
@@ -222,7 +222,7 @@ def jelly():
 				if response.status_code == 200:
 					print("{0}  Created".format(eUser.replace(" ","_")))
 					report['users'] += "{0} Created on Jelly".format(eUser, eUser.replace(" ","_"))
-					createdUsers.append(eUser.replace(" ","_"))
+
 					
 				else:
 					print("{1} -- {0}\n\n".format(response.content.decode('utf-8'), response.status_code))
