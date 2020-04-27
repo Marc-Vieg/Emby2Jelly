@@ -23,7 +23,7 @@ requests
 urllib.parse
 configobj
 time
-
+getpass
 ```
 ## Configuration
 simply edit settings.ini with your emby and jelly url and api keys
@@ -71,17 +71,16 @@ then very rapidly, it will get the viewed contend for all users from emby
 the script will work user by user (create them on Jelly if they don't already exist),
 asking Jelly for their viewable content 
 
-**due to security reason** their is no way by using API that could permit this script to get password, hashed pass etc.. of a user, 
-
-**Each user created will be password-less**
-
+**When creating users, the script will ask you for password and confirmation.**
 ```
-Jelly has 0 Users
 TestUser ..  Creating
+you will now enter password for user TestUser
+Password : 
+confirm   : 
 TestUser  Created
-Warning ! Password is set to empty !
-getting jelly DB for TestUser
 ```
+
+
 
 Identify your media and tell to jelly the user already seen it
 
@@ -139,7 +138,6 @@ The script will generate a RESULTS.txt with summary for each user and a list of 
 
 
 TestUser Created on Jelly
-  WARNING ! Password is empty
 
 
 --- TestUser ---

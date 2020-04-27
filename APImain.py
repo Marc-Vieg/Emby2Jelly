@@ -18,6 +18,7 @@ from configobj import ConfigObj
 import os
 import time
 import sys, getopt
+import getpass 
 
 
 
@@ -169,6 +170,7 @@ def emby(selectedUsers):
 def jelly():
 	reportStr = ''
 	report = {}
+	createdUsers = []
 
 	JELLY_APIKEY = getConfig(path, 'Jelly', 'JELLY_APIKEY', 'str')
 	JELLY_URLBASE = getConfig(path, 'Jelly', 'JELLY_URLBASE', 'str')
@@ -188,13 +190,14 @@ def jelly():
 	
 	
 	def compare_users():
+		
 		print("\033[96mJelly has {0} Users\033[00m".format(userTotal))
 
 		nonlocal JellyUsersIdDict
 		nonlocal report
+		nonlocal createdUsers
 		report['users'] = ''
 		JellyUsersIdDict['Name'] = 0
-
 		embyList = []
 		jellyList = []
 		for eUser in MigrationData:
@@ -215,16 +218,16 @@ def jelly():
 				api_url = '{0}Users/New?&api_key={1}'.format(JELLY_URLBASE,JELLY_APIKEY)
 
 				response = requests.post(api_url, headers=JELLY_HEADERS_usercreate,\
-							data={'name': eUser.replace(" ","_")})
+							data={'name': eUser.replace(" ","_"), 'Password' : set_pw(eUser.replace(" ","_"))})
 				if response.status_code == 200:
 					print("{0}  Created".format(eUser.replace(" ","_")))
-					print("Warning ! Password is set to empty !")
-					report['users'] += "{0} Created on Jelly\n  WARNING ! Password is empty\n".format(eUser, eUser.replace(" ","_"))
+					report['users'] += "{0} Created on Jelly".format(eUser, eUser.replace(" ","_"))
+					createdUsers.append(eUser.replace(" ","_"))
 					
 				else:
 					print("{1} -- {0}\n\n".format(response.content.decode('utf-8'), response.status_code))
 		#uptade the jelly Users in case we created one
-		jelly_get_users_list()
+
 	'''
 	
 	### I originaly wanted to ask Jellyfin server for Any item matching the provider ID of the MigrationMedia,
@@ -380,7 +383,28 @@ def jelly():
 			outfile.write(''.join(reportStr))
 			outfile.close()
 		
-					
+		
+		
+		
+		
+	
+	def set_pw(u):
+		p1 = "p1"
+		p2 = "p2"
+		while 1:
+			print("\nEnter password for user {0}".format(u))
+			p1 = getpass.getpass(prompt='Password : ') 
+			p2 = getpass.getpass(prompt='confirm   : ') 
+			if p1==p2:
+				if p1 == "":
+					print("Warning ! Password is set to empty !")
+				return p1
+			else:
+				print("passwords does not match \n")
+				
+
+	
+				
 	MigrationDataFinal = {}
 	JellyUsersIdDict = {}
 	NormalizedMigrationData = {}
@@ -390,7 +414,6 @@ def jelly():
 	#uptade the jelly Users in case we created one
 	jellyUsers = jelly_get_users_list()
 	userTotal = len(jellyUsers)
-	
 	iterateMigrationData()
 	send_watchedStatus()
 	
