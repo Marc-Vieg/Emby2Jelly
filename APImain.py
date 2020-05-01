@@ -167,7 +167,7 @@ def emby(selectedUsers):
 	
 	
 	
-def jelly():
+def jelly(newUser_pw):
 	reportStr = ''
 	report = {}
 
@@ -218,7 +218,7 @@ def jelly():
 				api_url = '{0}Users/New?&api_key={1}'.format(JELLY_URLBASE,JELLY_APIKEY)
 
 				response = requests.post(api_url, headers=JELLY_HEADERS_usercreate,\
-							data={'name': eUser.replace(" ","_"), 'Password' : set_pw(eUser.replace(" ","_"))})
+							data={'name': eUser.replace(" ","_"), 'Password' : set_pw(eUser.replace(" ","_"),newUser_pw)})
 				if response.status_code == 200:
 					print("{0}  Created".format(eUser.replace(" ","_")))
 					report['users'] += "{0} Created on Jelly".format(eUser, eUser.replace(" ","_"))
@@ -388,9 +388,11 @@ def jelly():
 		
 		
 	
-	def set_pw(u):
+	def set_pw(u,newUser_pw):
 		p1 = "p1"
 		p2 = "p2"
+		if newUser_pw is not None:
+			return newUser_pw
 		while 1:
 			print("\nEnter password for user {0}".format(u))
 			p1 = getpass.getpass(prompt='Password : ') 
@@ -440,9 +442,10 @@ if __name__ == "__main__":
 	argv = sys.argv[1:]
 	tofile = None
 	fromfile = None
+	newUser_pw = None
 	MigrationFile = None
 	try:
-		opts, args = getopt.getopt(argv,"",["tofile=","fromfile="])
+		opts, args = getopt.getopt(argv,"",["tofile=","fromfile=","new-user-pw="])
 	except getopt.GetoptError:
 		print('python3 APImain.py\n\nMigrate from Emby to Jellyfin (or Jellyfin to Jellyfin)\n')
 		print('--tofile [file]     run the script saving viewed statuses to a file instead of sending them to destination server')
@@ -458,6 +461,8 @@ if __name__ == "__main__":
 			tofile = arg
 		elif opt == "--fromfile":
 			fromfile = arg
+		elif opt == "--new-user-pw":
+			newUser_pw = arg
 
 
 	if tofile != None:
@@ -490,7 +495,7 @@ if __name__ == "__main__":
 			sys.exit(1)
 	
 	if tofile is None:
-		jelly()
+		jelly(newUser_pw)
 	if MigrationFile is not None:
 		MigrationFile.close()
 	sys.exit(1)
