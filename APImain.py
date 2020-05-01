@@ -35,8 +35,12 @@ MigrationMedia['ProviderIds']={}
 						
 						
 
-
+#EMBY_APIKEY = ""
+#EMBY_URLBASE = ""
+#JELLY_APIKEY = ""
+#JELLY_URLBASE = ""
 jellyUserDb = {}
+
 def getConfig(path, section, option, type):
     config = ConfigObj(path)
     if type == 'str':
@@ -82,8 +86,17 @@ def createConfig(path):
 
 def emby(selectedUsers):
 	global MigrationData
-	EMBY_APIKEY = getConfig(path, 'Emby', 'EMBY_APIKEY', 'str')
-	EMBY_URLBASE = getConfig(path, 'Emby', 'EMBY_URLBASE', 'str')
+	global EMBY_APIKEY
+	global EMBY_URLBASE
+	if EMBY_APIKEY == None or EMBY_URLBASE == None:
+		if not exist(path):
+			createConfig(path)
+			print("No config:\nif you are in docker, update your env. variables\nif not please see the README and complete the settings.ini\n thank you")
+			sys.exit()
+		EMBY_APIKEY = getConfig(path, 'Emby', 'EMBY_APIKEY', 'str')
+		EMBY_URLBASE = getConfig(path, 'Emby', 'EMBY_URLBASE', 'str')
+	else : 
+		print("using env variables for emby : {0}".format(EMBY_URLBASE))
 	EMBY_HEADERS = {'accept': 'application/json',
 					'api_key': '{0}'.format(EMBY_APIKEY)}
 
@@ -170,10 +183,17 @@ def emby(selectedUsers):
 def jelly(newUser_pw):
 	reportStr = ''
 	report = {}
-
-
-	JELLY_APIKEY = getConfig(path, 'Jelly', 'JELLY_APIKEY', 'str')
-	JELLY_URLBASE = getConfig(path, 'Jelly', 'JELLY_URLBASE', 'str')
+	global JELLY_APIKEY
+	global JELLY_URLBASE
+	if JELLY_APIKEY == None or JELLY_URLBASE == None :
+		if not exist(path):
+			createConfig(path)
+			print("No config:\nif you are in docker, update your env. variables\nif not please see the README and complete the settings.ini\n thank you")
+			sys.exit()
+		JELLY_APIKEY = getConfig(path, 'Jelly', 'JELLY_APIKEY', 'str')
+		JELLY_URLBASE = getConfig(path, 'Jelly', 'JELLY_URLBASE', 'str')
+	else : 
+		print("using env variables for Jelly : {0}".format(JELLY_URLBASE))
 	JELLY_HEADERS = {'accept': 'application/json','api_key': '{0}'.format(JELLY_APIKEY)}
 	
 	def jelly_get_users_list():
@@ -427,15 +447,14 @@ def jelly(newUser_pw):
 
 if __name__ == "__main__":
 	path = "settings.ini"
-	if not exist(path):
-		createConfig(path)
-		print("Please see the README and complete the config\n thank you")
 
-		sys.exit()
-		
 		
 		
 	global MigrationData
+	global EMBY_APIKEY
+	global EMBY_URLBASE
+	global JELLY_APIKEY
+	global JELLY_URLBASE
 	MigrationData = {}
 	selectedUsers = []
 	
@@ -463,6 +482,18 @@ if __name__ == "__main__":
 			fromfile = arg
 		elif opt == "--new-user-pw":
 			newUser_pw = arg
+
+
+
+
+	
+	EMBY_APIKEY = os.getenv('EMBY_APIKEY')
+	EMBY_URLBASE = os.getenv('EMBY_URLBASE')
+	JELLY_APIKEY = os.getenv('JELLY_APIKEY')
+	JELLY_URLBASE = os.getenv('JELLY_URLBASE')
+	
+		
+
 
 
 	if tofile != None:
