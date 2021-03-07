@@ -339,12 +339,14 @@ def jelly(newUser_pw):
 	
 	
 	def searchJellyLibrary(MigrationMedia, Library):
-		
 		for Item in Library['Items']:
+			if Item["Type"] != MigrationMedia["Type"]:
+				continue
+
 			for itProv, itId in Item['ProviderIds'].items():
 				for prov, id in MigrationMedia['ProviderIds'].items():
-						if itId == id: 
-							return Item['Id']
+					if itProv.lower() == prov.lower() and itId == id:
+						return Item['Id']
 		return None
 		
 		
