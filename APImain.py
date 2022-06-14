@@ -238,7 +238,7 @@ def jelly(newUser_pw):
 				api_url = '{0}Users/New?&api_key={1}'.format(JELLY_URLBASE,JELLY_APIKEY)
 
 				response = requests.post(api_url, headers=JELLY_HEADERS_usercreate,\
-							data={'name': eUser.replace(" ","_"), 'Password' : set_pw(eUser.replace(" ","_"),newUser_pw)})
+							json={'name': eUser.replace(" ","_"), 'Password' : set_pw(eUser.replace(" ","_"),newUser_pw)})
 				if response.status_code == 200:
 					print("{0}  Created".format(eUser.replace(" ","_")))
 					report['users'] += "{0} Created on Jelly".format(eUser, eUser.replace(" ","_"))
@@ -359,12 +359,14 @@ def jelly(newUser_pw):
 	
 	
 	def searchJellyLibrary(MigrationMedia, Library):
-		
 		for Item in Library['Items']:
+			if Item["Type"] != MigrationMedia["Type"]:
+				continue
+
 			for itProv, itId in Item['ProviderIds'].items():
 				for prov, id in MigrationMedia['ProviderIds'].items():
-						if itId == id: 
-							return Item['Id']
+					if itProv.lower() == prov.lower() and itId == id:
+						return Item['Id']
 		return None
 		
 		

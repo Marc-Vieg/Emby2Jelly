@@ -49,7 +49,7 @@ Migrate from Emby to Jellyfin (or Jellyfin to Jellyfin)
 Option Argument : (only one file can be used at a time, one run to a file, then one run from a file)
 			--tofile [file]     run the script saving viewed statuses to a file instead of sending them to destination server
 			--fromfile [file]       run the script with a file as source server and send viewed statuses to destination server
-			--newuserpwd "change-your-password-9efde123"
+			--new-user-pw "change-your-password-9efde123"
 ```
 
 ### users
