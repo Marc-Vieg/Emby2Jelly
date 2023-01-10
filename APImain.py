@@ -72,7 +72,7 @@ def createConfig(path):
     config.write()
 
 
-def emby(selectedUsers):
+def emby(selectedUsers, path):
     global MigrationData
     EMBY_APIKEY = getConfig(path, 'Emby', 'EMBY_APIKEY', 'str')
     EMBY_URLBASE = getConfig(path, 'Emby', 'EMBY_URLBASE', 'str')
@@ -90,10 +90,10 @@ def emby(selectedUsers):
             return json.loads(response.content.decode('utf-8'))
         else:
             try:
-                return "error : " + json.loads(response.content.decode('utf-8'))
+                return "error {http_code}: {output}".format(http_code=response.status_code, output=json.loads(response.content.decode("utf-8")))
             except Exception as e:
                 content = response.content.decode('utf-8')
-                return "error decoding ({e}) : '{content}'".format(e=e, content=content)
+                return "error {http_code} decoding ({e}) : '{content}'".format(e=e, http_code=response.status_code, content=content)
 
     def get_watched_status():
         global MigrationData
@@ -163,7 +163,7 @@ def emby(selectedUsers):
     get_watched_status()
 
 
-def jelly(newUser_pw):
+def jelly(newUser_pw, path, selectedUsers):
     reportStr = ''
     report = {}
 
@@ -351,7 +351,7 @@ def jelly(newUser_pw):
                         return Item['Id']
         return None
 
-    def iterateMigrationData():
+    def iterateMigrationData(selectedUsers):
         Library = {}
         nonlocal MigrationDataFinal
         for user in jellyUsers:
@@ -414,7 +414,7 @@ def jelly(newUser_pw):
     # uptade the jelly Users in case we created one
     jellyUsers = jelly_get_users_list()
     userTotal = len(jellyUsers)
-    iterateMigrationData()
+    iterateMigrationData(selectedUsers)
     send_watchedStatus()
 
     generate_report()
@@ -448,7 +448,7 @@ def main():
     newUser_pw = None
     MigrationFile = None
     try:
-        opts, args = getopt.getopt(argv, "", ["tofile=", "fromfile=", "new-user-pw="])
+        opts, args = getopt.getopt(argv, "t:f:p:q", ["tofile=", "fromfile=", "new-user-pw=", "quiet"])
     except getopt.GetoptError:
         print_help()
         return 2
@@ -484,14 +484,14 @@ def main():
         print("no file specified, will run from source server to destination server")
 
     if fromfile is None:
-        emby(selectedUsers)
+        emby(selectedUsers, path)
         if tofile is not None:
             MigrationFile.write(json.dumps(MigrationData))
             MigrationFile.close()
             return 1
 
     if tofile is None:
-        jelly(newUser_pw)
+        jelly(newUser_pw, path, selectedUsers)
     if MigrationFile is not None:
         MigrationFile.close()
     return 1
