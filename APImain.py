@@ -11,14 +11,15 @@
 # #############################################################################
 
 
+import getopt
+import getpass 
 import json
+import os
 import requests
+import sys
+import time
 import urllib.parse
 from configobj import ConfigObj
-import os
-import time
-import sys, getopt
-import getpass 
 
 
 
@@ -99,7 +100,11 @@ def emby(selectedUsers):
 		if response.status_code == 200:
 			return json.loads(response.content.decode('utf-8'))
 		else:
-			return "error : " + json.loads(response.content.decode('utf-8'))
+			try:
+				return "error : " + json.loads(response.content.decode('utf-8'))
+			except Exception as e:
+				content = response.content.decode('utf-8')
+				return "error decoding ({e}) : '{content}'".format(e=e, content=content)
 	
 	
 	
@@ -156,7 +161,12 @@ def emby(selectedUsers):
 		
 
 	users = emby_get_users_list(EMBY_APIKEY,EMBY_URLBASE,EMBY_HEADERS)
-	if selectedUsers ==[]:
+	if selectedUsers == []:
+		try:
+			print(users.strip())
+			return
+		except AttributeError as e:
+			pass
 		for user in users:
 			selectedUsers.append(user['Name'])
 	
@@ -422,21 +432,22 @@ def jelly(newUser_pw):
 	send_watchedStatus()
 	
 	generate_report()
-	
-	
 
 
+def print_help():
+		print('python3 APImain.py\n\nMigrate from Emby to Jellyfin (or Jellyfin to Jellyfin)\n')
+		print('--tofile [file]     run the script saving viewed statuses to a file instead of sending them to destination server')
+		print('--fromfile [file]       run the script with a file as source server and send viewed statuses to destination server')
 
-if __name__ == "__main__":
+
+def main():
 	path = "settings.ini"
 	if not exist(path):
 		createConfig(path)
 		print("Please see the README and complete the config\n thank you")
 
-		sys.exit()
-		
-		
-		
+		return
+
 	global MigrationData
 	MigrationData = {}
 	selectedUsers = []
@@ -449,16 +460,12 @@ if __name__ == "__main__":
 	try:
 		opts, args = getopt.getopt(argv,"",["tofile=","fromfile=","new-user-pw="])
 	except getopt.GetoptError:
-		print('python3 APImain.py\n\nMigrate from Emby to Jellyfin (or Jellyfin to Jellyfin)\n')
-		print('--tofile [file]     run the script saving viewed statuses to a file instead of sending them to destination server')
-		print('--fromfile [file]       run the script with a file as source server and send viewed statuses to destination server')
-		sys.exit(2)
+		print_help()
+		return 2
 	for opt, arg in opts:
 		if opt == '-h':
-			print('python3 APImain.py\n\nMigrate from Emby to Jellyfin (or Jellyfin to Jellyfin)\n')
-			print('--tofile [file]     run the script saving viewed statuses to a file instead of sending them to destination server')
-			print('--fromfile [file]       run the script with a file as source server and send viewed statuses to destination server')
-			sys.exit()
+			print_help()
+			return
 		elif opt == "--tofile":
 			tofile = arg
 		elif opt == "--fromfile":
@@ -473,7 +480,7 @@ if __name__ == "__main__":
 			MigrationFile = open(tofile, 'w')
 		except : 
 			print("cannot open file {0}".format(tofile))
-			sys.exit(1)
+			return 1
 
 	elif fromfile != None:
 		print ('Migration from file {0}'.format(fromfile))
@@ -483,23 +490,23 @@ if __name__ == "__main__":
 			#print(MigrationData)
 		except : 
 			print("cannot open file {0}".format(tofile))
-			sys.exit(1)
+			return 1
 	else:
 		print("no file specified, will run from source server to destination server")
 
-
-	
 	if fromfile is None:
 		emby(selectedUsers)	
 		if tofile is not None:
 			MigrationFile.write(json.dumps(MigrationData))
 			MigrationFile.close()
-			sys.exit(1)
-	
+			return 1
+
 	if tofile is None:
 		jelly(newUser_pw)
 	if MigrationFile is not None:
 		MigrationFile.close()
-	sys.exit(1)
+	return 1
 
-	
+
+if __name__ == "__main__":
+        main()
