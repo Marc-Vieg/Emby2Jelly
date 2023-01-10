@@ -13,7 +13,7 @@ for root, dirs, files in os.walk('.'):
 setuptools.setup(
     name='Emby2Jelly',
     version='0.0.1',
-    author='Marc Vieg/Nicola Canepa',
+    author='Marc Vieg/Gunter Cobaye/Richard Schwab/Nothing4You/Nicola Canepa',
     author_email='canne74@gmail.com',
     description='Recreate users from emby to jellyfin and migrate their watched content for movies and TV shows',
     py_modules=["APImain"],

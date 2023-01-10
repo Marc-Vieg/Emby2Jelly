@@ -90,10 +90,14 @@ def emby(selectedUsers, path):
             return json.loads(response.content.decode('utf-8'))
         else:
             try:
-                return "error {http_code}: {output}".format(http_code=response.status_code, output=json.loads(response.content.decode("utf-8")))
+                return "error {http_code}: {output}".format(
+                    http_code=response.status_code, output=json.loads(response.content.decode("utf-8"))
+                )
             except Exception as e:
                 content = response.content.decode('utf-8')
-                return "error {http_code} decoding ({e}) : '{content}'".format(e=e, http_code=response.status_code, content=content)
+                return "error {http_code} decoding ({e}) : '{content}'".format(
+                    e=e, http_code=response.status_code, content=content
+                )
 
     def get_watched_status():
         global MigrationData
