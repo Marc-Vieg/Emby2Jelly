@@ -460,11 +460,11 @@ def main():
         if opt == '-h':
             print_help()
             return
-        elif opt == "--tofile":
+        elif opt in ("--tofile", "-t"):
             tofile = arg
-        elif opt == "--fromfile":
+        elif opt in ("--fromfile", "-f"):
             fromfile = arg
-        elif opt == "--new-user-pw":
+        elif opt in ("--new-user-pw", "-p"):
             newUser_pw = arg
 
     if tofile != None:
