@@ -6,9 +6,9 @@ import setuptools
 # Files underneath shell/ will be copied into the build preserving the
 # subdirectory structure if they exist.
 data_files = []
-for root, dirs, files in os.walk('.'):
-    data_files.append((os.path.relpath(root, '.'),
-                       [os.path.join(root, f) for f in files]))
+#for root, dirs, files in os.walk('.'):
+#    data_files.append((os.path.relpath(root, '.'),
+#                       [os.path.join(root, f) for f in files]))
 
 setuptools.setup(
     name='Emby2Jelly',
@@ -19,6 +19,7 @@ setuptools.setup(
     py_modules=["APImain"],
     # Enable these 2 lines (and disable the above) if package structure changes
     # packages=setuptools.find_packages('src', exclude=['.tox', 'test']),
+    packages=[],
     # package_dir={"": "src"},
     data_files=data_files,
     install_requires=[
