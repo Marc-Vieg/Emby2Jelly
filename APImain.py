@@ -138,7 +138,7 @@ def emby(selectedUsers):
 						EMBY_HEADERS_Auth = {'accept': 'application/json',
 						   'api_key': '{0}'.format(EMBY_APIKEY)}
 						response = requests.get(api_url, headers=EMBY_HEADERS_Auth)   
-						if response.status_code == 200:
+						if response.status_code == 200 and 'Name' in item:
 							itemDto = json.loads(response.content.decode('utf-8'))							
 							MigrationMedia['Type']=item['Type']
 							MigrationMedia['EmbyId']=item['Id']
@@ -332,7 +332,7 @@ def jelly(newUser_pw):
 	def search_byName(MigrationMedia,Library):
 
 		for jelly_movie in Library['Items'] :
-			if  jelly_movie['Name'] == MigrationMedia['Name']:
+			if  'Name' in jelly_movie and (jelly_movie['Name'] == MigrationMedia['Name']):
 				print("found by name {0}".format(jelly_movie['Name']))
 				return jelly_movie['Id']
 		return None
