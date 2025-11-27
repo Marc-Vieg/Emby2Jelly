@@ -381,7 +381,7 @@ def jelly(newUser_pw):
 				reportStr += "Medias Migrated : {0} / {1}\n".format(report[user['Name'].replace("_"," ")]['ok'],report[user['Name'].replace("_"," ")]['tosend']) 
 				if report[user['Name'].replace("_"," ")]['nok'] != []:
 					reportStr += "Unfortunately, I Missed {0} Medias :\n{1}\n".format(report[user['Name'].replace("_"," ")]['tosend'] - report[user['Name'].replace("_"," ")]['ok'], list(report[user['Name'].replace("_"," ")]['nok']))
-		with open('RESULTS.txt', 'w') as outfile:
+		with open('RESULTS.txt', 'w', encoding='utf-8') as outfile:
 			outfile.write(''.join(reportStr))
 			outfile.close()
 		
@@ -480,7 +480,11 @@ if __name__ == "__main__":
 		try :
 			MigrationFile = open(fromfile, 'r')
 			MigrationData = json.loads(MigrationFile.read())
-			#print(MigrationData)
+			# Populate the selectedUsers, otherwise the script will get to iterateMigrationData
+			# and do nothing.
+			if not selectedUsers:
+				for user in MigrationData.keys():
+					selectedUsers.append(user)
 		except : 
 			print("cannot open file {0}".format(tofile))
 			sys.exit(1)
