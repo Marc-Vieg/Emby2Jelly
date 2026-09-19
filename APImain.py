@@ -99,7 +99,7 @@ def emby(selectedUsers):
 		if response.status_code == 200:
 			return json.loads(response.content.decode('utf-8'))
 		else:
-			return "error : " + json.loads(response.content.decode('utf-8'))
+			return "error : " + response.content.decode('utf-8')
 	
 	
 	
@@ -174,27 +174,36 @@ def jelly(newUser_pw):
 
 	JELLY_APIKEY = getConfig(path, 'Jelly', 'JELLY_APIKEY', 'str')
 	JELLY_URLBASE = getConfig(path, 'Jelly', 'JELLY_URLBASE', 'str')
-	JELLY_HEADERS = {'accept': 'application/json','api_key': '{0}'.format(JELLY_APIKEY)}
+	JELLY_HEADERS = {
+		'accept': 'application/json',
+		'Authorization': 'MediaBrowser Token="{0}"'.format(JELLY_APIKEY),
+	}
 	
 	def jelly_get_users_list():
-		api_url = '{0}Users?api_key={1}'.format(JELLY_URLBASE,JELLY_APIKEY)
+		api_url = '{0}Users'.format(JELLY_URLBASE)
 
 		response = requests.get(api_url, headers=JELLY_HEADERS)
 		if response.status_code == 200:
-			#print(json.loads(response.content.decode('utf-8')))
 			return json.loads(response.content.decode('utf-8'))
 		else:
-			return "error : " + json.loads(response.content.decode('utf-8'))
+			print("Error fetching users: " + response.content.decode('utf-8'))
+			return []
+		response = requests.get(api_url, headers=JELLY_HEADERS)
+		if response.status_code == 200:
+			return json.loads(response.content.decode('utf-8'))
+		else:
+			print("Error fetching users: " + response.content.decode('utf-8'))
+			return []
 	
 	
 	
 	
 	def compare_users():
-		
 		print("\033[96mJelly has {0} Users\033[00m".format(userTotal))
-
+		
 		nonlocal JellyUsersIdDict
 		nonlocal report
+
 
 		report['users'] = ''
 		JellyUsersIdDict['Name'] = 0
@@ -212,10 +221,12 @@ def jelly(newUser_pw):
 			else:
 				print("{0} ..  Creating".format(eUser))
 				##creating user account
-				JELLY_HEADERS_usercreate = {'accept': 'application/json',
-											'api_key': '{0}'.format(JELLY_APIKEY)}
+				JELLY_HEADERS_usercreate = {
+									'accept': 'application/json',
+									'Authorization': 'MediaBrowser Token="{0}"'.format(JELLY_APIKEY),
+								}
 
-				api_url = '{0}Users/New?&api_key={1}'.format(JELLY_URLBASE,JELLY_APIKEY)
+				api_url = '{0}Users/New'.format(JELLY_URLBASE)
 
 				response = requests.post(api_url, headers=JELLY_HEADERS_usercreate,\
 							json={'name': eUser.replace(" ","_"), 'Password' : set_pw(eUser.replace(" ","_"),newUser_pw)})
@@ -226,7 +237,7 @@ def jelly(newUser_pw):
 					
 				else:
 					print("{1} -- {0}\n\n".format(response.content.decode('utf-8'), response.status_code))
-		#uptade the jelly Users in case we created one
+		#update the jelly Users in case we created one
 
 	'''
 	
@@ -275,10 +286,12 @@ def jelly(newUser_pw):
 	def get_userLibrary(user):
 		user['Name'].replace("_"," ")
 		print("getting jelly DB for {0}".format(user['Name']))
-		api_url = '{0}Users/{2}/Items?Recursive=True&Fields=ProviderIds&IncludeItemTypes=Episode,Movie&api_key={1}'.format(\
+		api_url = '{0}Users/{2}/Items?Recursive=True&Fields=ProviderIds&IncludeItemTypes=Episode,Movie'.format(\
 						JELLY_URLBASE,JELLY_APIKEY,user['Id'])
-		JELLY_HEADERS_movie = {'accept': 'application/json',
-											'api_key': '{0}'.format(JELLY_APIKEY)}
+		JELLY_HEADERS_movie = {
+											'accept': 'application/json',
+											'Authorization': 'MediaBrowser Token="{0}"'.format(JELLY_APIKEY),
+		}
 		response = requests.get(api_url, headers=JELLY_HEADERS_movie)
 		if response.status_code == 200:
 			#print(json.loads(response.content.decode('utf-8')))
@@ -308,13 +321,14 @@ def jelly(newUser_pw):
 				nok = 0
 				for MigrationMedia in MigrationDataFinal[user['Name'].replace("_"," ")]:
 					if MigrationMedia['JellyId'] is not None:
-						JELLY_HEADERS_movie = {'accept': 'application/json',
-													'api_key': '{0}'.format(JELLY_APIKEY),
+						JELLY_HEADERS_movie = {
+													'accept': 'application/json',
+													'Authorization': 'MediaBrowser Token="{0}"'.format(JELLY_APIKEY),
 													'item' : json.dumps({'Name' : MigrationMedia['Name'],
 																		'Id' : MigrationMedia['JellyId'],
 																		'Played' : 1 },
 																		 separators=(',', ':'))}
-						api_url = '{0}Users/{1}/PlayedItems/{2}?api_key={3}'.format(JELLY_URLBASE,user['Id'],MigrationMedia['JellyId'],JELLY_APIKEY)
+						api_url = '{0}Users/{1}/PlayedItems/{2}'.format(JELLY_URLBASE,user['Id'],MigrationMedia['JellyId'])
 						response = requests.post(api_url, headers=JELLY_HEADERS_movie)
 						if response.status_code == 200:
 							ok +=1
@@ -332,7 +346,7 @@ def jelly(newUser_pw):
 	def search_byName(MigrationMedia,Library):
 
 		for jelly_movie in Library['Items'] :
-			if  jelly_movie['Name'] == MigrationMedia['Name']:
+			if  jelly_movie['Name'].lower().strip() == MigrationMedia['Name'].lower().strip():
 				print("found by name {0}".format(jelly_movie['Name']))
 				return jelly_movie['Id']
 		return None
@@ -345,7 +359,7 @@ def jelly(newUser_pw):
 
 			for itProv, itId in Item['ProviderIds'].items():
 				for prov, id in MigrationMedia['ProviderIds'].items():
-					if itProv.lower() == prov.lower() and itId == id:
+					if itProv.lower() == prov.lower() and str(itId) == str(id):
 						return Item['Id']
 		return None
 		
@@ -495,6 +509,15 @@ if __name__ == "__main__":
 			MigrationFile.write(json.dumps(MigrationData))
 			MigrationFile.close()
 			sys.exit(1)
+	elif tofile is not None:
+		MigrationFile.write(json.dumps(MigrationData))
+		MigrationFile.close()
+		sys.exit(1)
+	else:
+		# If we are using fromfile and not tofile, we should still populate selectedUsers
+		# so that jelly() knows which users to process.
+		for eUser in MigrationData:
+			selectedUsers.append(eUser)
 	
 	if tofile is None:
 		jelly(newUser_pw)

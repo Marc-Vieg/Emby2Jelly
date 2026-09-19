@@ -6,6 +6,8 @@ the script work by asking emby what each user's watched list, and then search th
 if ProviderIds are not available, it try to recognize your media by names (`Les Animaux fantastiques : Les Crimes de Grindelwald`) 
 
 ***Be sure to have your content identified (It's prefered to refresh missing metadatas on your Library before) ***
+*** Be sure to disable collections/grouping in Jellyfin, as it may prevent the script from finding items ***
+
 
 
 Tested with Emby server Version : **4.4.0.40**
