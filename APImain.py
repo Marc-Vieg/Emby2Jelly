@@ -18,10 +18,19 @@ from configobj import ConfigObj
 import os
 import time
 import sys, getopt
-import getpass 
+import getpass
 
-
-
+def auth_headers(api_key):
+    return {
+        "Accept": "application/json",
+        "Authorization": (
+            f'MediaBrowser Token="{api_key}", '
+            f'Client="Emby2Jelly", '
+            f'Device="Python", '
+            f'DeviceId="Emby2Jelly", '
+            f'Version="1.0"'
+        )
+    }
 '''
 MigrationData[user['Name']] = []
 MigrationMedia={}
@@ -84,25 +93,24 @@ def emby(selectedUsers):
 	global MigrationData
 	EMBY_APIKEY = getConfig(path, 'Emby', 'EMBY_APIKEY', 'str')
 	EMBY_URLBASE = getConfig(path, 'Emby', 'EMBY_URLBASE', 'str')
-	EMBY_HEADERS = {'accept': 'application/json',
-					'api_key': '{0}'.format(EMBY_APIKEY)}
+	EMBY_HEADERS = auth_headers(EMBY_APIKEY)
 
 	
 	users =  dict()
 	
 	def emby_get_users_list(EMBY_APIKEY,EMBY_URLBASE,EMBY_HEADERS):
 
-		api_url = '{0}Users?api_key={1}'.format(EMBY_URLBASE,EMBY_APIKEY)
+		api_url = f"{EMBY_URLBASE}Users"
 
 		response = requests.get(api_url, headers=EMBY_HEADERS)
 
 		if response.status_code == 200:
 			return json.loads(response.content.decode('utf-8'))
 		else:
-			return "error : " + json.loads(response.content.decode('utf-8'))
-	
-	
-	
+                        print("Status:", response.status_code)
+                        print("Response:")
+                        print(response.text)
+                        sys.exit(1)
 	
 	
 	def get_watched_status():
@@ -119,10 +127,9 @@ def emby(selectedUsers):
 				PlayedItem = 0
 				print("{0} ({2} / {3}) : {1}".format(user['Name'],user['Id'],userCount,userTotal))
 
-				api_url = '{0}Users/{1}/Items?Filters=IsPlayed&IncludeItemTypes=Movie,Episode&Recursive=True&api_key={2}'.format(EMBY_URLBASE,user['Id'],EMBY_APIKEY)
-				EMBY_HEADERS_Auth = {'accept': 'application/json',
-				   'api_key': '{0}'.format(EMBY_APIKEY)}
-				response = requests.get(api_url, headers=EMBY_HEADERS_Auth)   
+				api_url = '{0}Users/{1}/Items?Filters=IsPlayed&IncludeItemTypes=Movie,Episode&Recursive=True'.format(EMBY_URLBASE,user['Id'],EMBY_APIKEY)
+				EMBY_HEADERS_Auth = auth_headers(EMBY_APIKEY)
+				response = requests.get(api_url, headers=EMBY_HEADERS_Auth)
 				if response.status_code == 200:
 					UserPlaylist = json.loads(response.content.decode('utf-8'))	
 					for item in UserPlaylist["Items"]:
@@ -134,10 +141,9 @@ def emby(selectedUsers):
 						MigrationMedia['ProviderIds']={}
 
 						PlayedItem +=1
-						api_url = '{0}Users/{1}/Items/{3}?api_key={2}'.format(EMBY_URLBASE,user['Id'],EMBY_APIKEY,item['Id'])
-						EMBY_HEADERS_Auth = {'accept': 'application/json',
-						   'api_key': '{0}'.format(EMBY_APIKEY)}
-						response = requests.get(api_url, headers=EMBY_HEADERS_Auth)   
+						api_url = '{0}Users/{1}/Items/{3}'.format(EMBY_URLBASE,user['Id'],EMBY_APIKEY,item['Id'])
+						EMBY_HEADERS_Auth = auth_headers(EMBY_APIKEY)
+						response = requests.get(api_url, headers=EMBY_HEADERS_Auth)
 						if response.status_code == 200:
 							itemDto = json.loads(response.content.decode('utf-8'))							
 							MigrationMedia['Type']=item['Type']
@@ -174,10 +180,10 @@ def jelly(newUser_pw):
 
 	JELLY_APIKEY = getConfig(path, 'Jelly', 'JELLY_APIKEY', 'str')
 	JELLY_URLBASE = getConfig(path, 'Jelly', 'JELLY_URLBASE', 'str')
-	JELLY_HEADERS = {'accept': 'application/json','api_key': '{0}'.format(JELLY_APIKEY)}
+	JELLY_HEADERS = auth_headers(JELLY_APIKEY)
 	
 	def jelly_get_users_list():
-		api_url = '{0}Users?api_key={1}'.format(JELLY_URLBASE,JELLY_APIKEY)
+		api_url = f"{JELLY_URLBASE}Users"
 
 		response = requests.get(api_url, headers=JELLY_HEADERS)
 		if response.status_code == 200:
@@ -212,10 +218,9 @@ def jelly(newUser_pw):
 			else:
 				print("{0} ..  Creating".format(eUser))
 				##creating user account
-				JELLY_HEADERS_usercreate = {'accept': 'application/json',
-											'api_key': '{0}'.format(JELLY_APIKEY)}
+				JELLY_HEADERS_usercreate = auth_headers(JELLY_APIKEY)
 
-				api_url = '{0}Users/New?&api_key={1}'.format(JELLY_URLBASE,JELLY_APIKEY)
+				api_url = '{0}Users/New?'.format(JELLY_URLBASE,JELLY_APIKEY)
 
 				response = requests.post(api_url, headers=JELLY_HEADERS_usercreate,\
 							json={'name': eUser.replace(" ","_"), 'Password' : set_pw(eUser.replace(" ","_"),newUser_pw)})
@@ -275,10 +280,9 @@ def jelly(newUser_pw):
 	def get_userLibrary(user):
 		user['Name'].replace("_"," ")
 		print("getting jelly DB for {0}".format(user['Name']))
-		api_url = '{0}Users/{2}/Items?Recursive=True&Fields=ProviderIds&IncludeItemTypes=Episode,Movie&api_key={1}'.format(\
+		api_url = '{0}Users/{2}/Items?Recursive=True&Fields=ProviderIds&IncludeItemTypes=Episode,Movie'.format(\
 						JELLY_URLBASE,JELLY_APIKEY,user['Id'])
-		JELLY_HEADERS_movie = {'accept': 'application/json',
-											'api_key': '{0}'.format(JELLY_APIKEY)}
+		JELLY_HEADERS_movie = auth_headers(JELLY_APIKEY)
 		response = requests.get(api_url, headers=JELLY_HEADERS_movie)
 		if response.status_code == 200:
 			#print(json.loads(response.content.decode('utf-8')))
@@ -314,7 +318,7 @@ def jelly(newUser_pw):
 																		'Id' : MigrationMedia['JellyId'],
 																		'Played' : 1 },
 																		 separators=(',', ':'))}
-						api_url = '{0}Users/{1}/PlayedItems/{2}?api_key={3}'.format(JELLY_URLBASE,user['Id'],MigrationMedia['JellyId'],JELLY_APIKEY)
+						api_url = '{0}Users/{1}/PlayedItems/{2}'.format(JELLY_URLBASE,user['Id'],MigrationMedia['JellyId'],JELLY_APIKEY)
 						response = requests.post(api_url, headers=JELLY_HEADERS_movie)
 						if response.status_code == 200:
 							ok +=1
@@ -503,3 +507,5 @@ if __name__ == "__main__":
 	sys.exit(1)
 
 	
+
+
