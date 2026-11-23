@@ -285,10 +285,21 @@ def jelly(newUser_pw):
 		JELLY_HEADERS_movie = auth_headers(JELLY_APIKEY)
 		response = requests.get(api_url, headers=JELLY_HEADERS_movie)
 		if response.status_code == 200:
-			#print(json.loads(response.content.decode('utf-8')))
-			return json.loads(response.content.decode('utf-8'))
+			result = json.loads(response.content.decode('utf-8'))
+			# Defensive check: handle None, empty dict, or items array directly
+			if result is None:
+				print("API returned None for {0}".format(user['Name']))
+				return None
+			elif isinstance(result, list):
+				# Jelly may return items as plain list instead of {"Items": [...]}
+				result = {"Items": result} if result else {}
+			elif not isinstance(result, dict) or "Items" not in result:
+				print("Unexpected response format for {0}: {1}".format(user['Name'], type(result)))
+				return None
+			return result
 		else:
 			print("error : " + response.content.decode('utf-8'))
+			return None
 		
 		
 
@@ -334,8 +345,12 @@ def jelly(newUser_pw):
 	
 	
 	def search_byName(MigrationMedia,Library):
+		# Defensive check for None or invalid Library structure
+		if Library is None:
+			print("ERROR: Library is None - authentication may have failed")
+			return None
 
-		for jelly_movie in Library['Items'] :
+		for jelly_movie in Library.get('Items', []) :
 			if  jelly_movie['Name'] == MigrationMedia['Name']:
 				print("found by name {0}".format(jelly_movie['Name']))
 				return jelly_movie['Id']
@@ -343,7 +358,20 @@ def jelly(newUser_pw):
 	
 	
 	def searchJellyLibrary(MigrationMedia, Library):
-		for Item in Library['Items']:
+		# Defensive check for None or invalid Library structure
+		if Library is None:
+			print("ERROR: Library is None - authentication may have failed")
+			return None
+
+		# Handle both wrapped {"Items": [...]} and plain [...] formats
+		items = Library.get('Items', [])
+		if not isinstance(items, list):
+			print("WARNING: Library structure invalid, expecting Items key or array")
+			return None
+
+		for Item in items:
+			if not isinstance(Item, dict):
+				continue
 			if Item["Type"] != MigrationMedia["Type"]:
 				continue
 
