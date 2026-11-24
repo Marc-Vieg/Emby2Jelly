@@ -15,6 +15,21 @@ and Jellyfin server Version : **10.5.4**
 !! Be sure to make emby and Jelly search for missing metadata, Even each Tvshow Episode need to have their providerIds identified to be correctly migrated
 
 ---
+### Jellyfin 12.x / per-user authentication
+
+Some newer Jellyfin-compatible servers only accept watched-status writes from the token of the user whose data is being changed. An API key, or even an administrator token, can read the user list and create users but returns `401 Unauthorized` when marking another user's items as played.
+
+When `JELLY_USERNAME` / `JELLY_PASSWORD` are configured for an administrator **and** `--new-user-pw` is supplied, this script:
+
+1. signs in as the administrator;
+2. sets each selected non-admin user's Jellyfin password to the `--new-user-pw` value;
+3. signs in as that user and writes their watched status using their own token.
+
+> **Warning:** step 2 changes the Jellyfin password of every migrated non-admin user. Tell those users the new password. If you do not want passwords changed, do not pass `--new-user-pw`; only the configured administrator's own watched status can then be migrated on affected servers.
+
+Unmatched media in `RESULTS.txt` usually means the title/episode is not present in the destination Jellyfin library (or its provider IDs do not match), not an authentication problem. Refresh metadata on both servers before migrating.
+
+---
 ### Requirements
 python3
 ```
@@ -38,7 +53,14 @@ JELLY_URLBASE = http://127.0.0.1:8096/
 # do not forget the trailing slash 
 
 ## if you have a custom path, or a reverse proxy, do not forget /emby/ or /jelly/ 
+
+## Recommended on servers with per-user watched-status restrictions:
+## administrator credentials, used to create users and reset their passwords
+# JELLY_USERNAME = admin
+# JELLY_PASSWORD = yourpassword
 ```
+
+> Keep `settings.ini` private: it contains API keys and passwords. Do not commit it.
 
 ---
 
@@ -51,6 +73,8 @@ Option Argument : (only one file can be used at a time, one run to a file, then 
 			--fromfile [file]       run the script with a file as source server and send viewed statuses to destination server
 			--new-user-pw "change-your-password-9efde123"
 ```
+
+`--new-user-pw` is used both for newly created users and, on servers that require it, as the temporary new password for existing users whose watched status is migrated.
 
 ### users
 the script will get user list from Emby,

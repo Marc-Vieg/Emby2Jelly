@@ -4,3 +4,12 @@ EMBY_URLBASE = http://127.0.0.1:8096/emby/
 [Jelly]
 JELLY_APIKEY = eeeeeeeeeeeeeeeffffffffffffffffggggggggg
 JELLY_URLBASE = http://127.0.0.1:8096/jellyfin/
+# Recommended: Jellyfin API keys only work for the user that created them.
+# An administrator login is needed to create users and reset their passwords.
+# JELLY_USERNAME = admin
+# JELLY_PASSWORD = yourpassword
+#
+# Some Jellyfin builds only accept watched-status writes from the token of the
+# user whose data is being changed. With --new-user-pw, the script uses the
+# admin login to set each migrated user's password to that value, signs in as
+# that user, and then writes their watched status. Tell users their new password.
